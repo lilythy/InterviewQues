@@ -15,7 +15,22 @@
 栈内存中变量一般在它的当前执行环境结束就会被销毁被垃圾回收制回收， 而堆内存中的变量则不会，因为不确定其他的地方是不是还有一些对它的引用。 堆内存中的变量只有在所有对它的引用都结束的时候才会被回收。
 
 # 二.原型链、闭包
-**1、new一个实例过程**
+### **1、原型链**
+**原型对象**
+要想让构造函数生成的所有实例对象都能够共享属性，那么我们就给构造函数加一个属性叫做prototype，用来指向原型对象，我们把所有实例对象共享的属性和方法都放在这个构造函数的prototype属性指向的原型对象中，不需要共享的属性和方法放在构造函数中。
+
+**原型继承**
+原型链是实现原型继承的主要方法，基本思想就是利用原型让一个引用类型继承另一个引用类型的属性和方法。
+
+**原型链**
+既然每个对象都有一个_proto_属性指向原型对象，那么原型对象也有_proto_指向原型对象的原型对象，直到指向Object原型的null，这才到达原型链的顶端。
+
+**判断一个变量是数组的方法：**
+`[1,2] instanceof Array`
+`[1,2].__proto__ == Array.prototype`
+`Array.prototype.isPrototypeOf([1,2])`
+
+**new一个实例过程**
 用伪代码模拟其内部流程如下：
 ```javascript
 newAnimal('cat') = {
@@ -31,7 +46,12 @@ newAnimal('cat') = {
 （3） 在 obj 对象的执行环境调用 Animal 函数并传递参数 “ cat ” 。
 （4） 考察第 3 步的返回值，如果无返回值 或者 返回一个非对象值，则将 obj 作为新对象返回；否则会将 result 作为新对象返回。
 
-**2、闭包**
+**原型链使用场景**
+1）使用原型对象扩展自定义对象
+`Array.prototype.isFirst = () => {}`
+
+
+### **2、闭包**
 **变量的作用域**：简单来说，作用域 指程序中定义变量的区域，它决定了当前执行代码对变量的访问权限。分为全局变量和局部变量。
 **变量提升：**
 先来看看什么是JavaScript中的声明和赋值
@@ -101,7 +121,117 @@ for (var i = 0; i < infoArr.length; i++) {
     	}
     }
 ```
+# 3.es6
+1）模板字符串实现原理： 通过正则匹配，替换原字符串中的变量
+2）对象和数组解构赋值原理： 解构是ES6提供的语法糖，其实内在是针对可迭代对象的Iterator接口，通过遍历器按顺序获取对应的值进行赋值。
+3）for of和for in的区别
+for in遍历的是数组的索引（即键名），而for of遍历的是数组元素值。 所以for in更适合遍历对象，不要使用for in遍历数组。
+4)数组扩展方法
+- 通过for...of结构，允许多重循环。注：新数组会立即在内存中生成，这时如果原数组是一个很大的数组，将会非常耗费内存。
+```
+var a1 = [1, 2, 3, 4];
+var a2 = [for (i of a1) i * 2];
+```
+- Array.from()：Array.from()：用于将两类对象转为真正的数组：类似数组的对象（array-like object）和可遍历（iterable）的对象，其中包括ES6新增的Set和Map结构。Array.from()还可以接受第二个参数，作用类似于数组的map方法，用来对每个元素进行处理。
+`Array.from({ 0: "a", 1: "b", 2: "c", length: 3 });`
+`Array.from(arrayLike, x => x * x);`
+- Array.of()方法用于将一组值，转换为数组。弥补数组构造函数Array()的不足。
+`Array.of(3, 11, 8) // [3,11,8]`
+- 数组实例的find()用于找出第一个符合条件的数组元素；数组实例的findIndex()用于返回第一个符合条件的数组元素的位置。
+- 数组实例的fill()使用给定值，填充一个数组。
+5)对象扩展
+- Object.is()和Object.assign()
+Object.is()：用来比较两个值是否严格相等。它与严格比较运算符（===）的行为基本一致，不同之处只有两个：一是+0不等于-0，二是NaN等于自身。
 
+Object.assign()：用来将源对象（source）的所有可枚举属性，复制到目标对象（target）。它至少需要两个对象作为参数，第一个参数是目标对象，后面的参数都是源对象。如果目标对象与源对象有同名属性，或多个源对象有同名属性，则后面的属性会覆盖前面的属性。
+6）Set和Map数据结构
+Set结构类似于数组，但是成员的值都是唯一的，没有重复的值。
+Map结构类似于对象，也是键值对的集合，但是“键”的范围不限于字符串，各种类型的值（包括对象）都可以当作键。
+7）promise,Generator ,yeild await区别
+Promise 是一个对象，从它可以获取异步操作的消息。Promise对象代表一个异步操作，有三种状态：pending（进行中）、fulfilled（已成功）和rejected（已失败）。
+Generator函数是一种可以中途暂停、异步执行的函数
+简单的说async函数就相当于自执行的Generator函数，相当于自带一个状态机，在await的部分等待返回， 返回后自动执行下一步。而且相较于Promise,async的优越性就是把每次异步返回的结果从then中拿到最外层的方法中，不需要链式调用，只要用同步的写法就可以了。更加直观而且，更适合处理并发调用的问题。
+8）module，与CommonJS 模块有什么区别
 
+ES6 模块跟 CommonJS 模块的不同，主要有以下两个方面：
+ES6 模块输出的是值的引用，输出接口动态绑定，而 CommonJS 输出的是值的拷贝，所以原模块更新后，引用进来的模块并不会更新
+ES6 模块编译时执行，而 CommonJS 模块总是在运行时加载
+```
+// es6  import 是静态执行虽然 a 模块中 import 引入晚于 console.log('a')，但是它被 JS 引擎通过静态分析，提到模块执行的最前面,优于模块中的其他部分的执行
+// a.js 
+console.log('a.js')
+import { foo } from './b';
+
+// export 声明的变量也是优于模块其它内容的执行的，但是具体对变量赋值需要等到执行到相应代码的时候
+// b.js
+export let foo = 1;
+console.log('b.js 先执行');
+
+// 执行结果:
+// b.js 先执行
+// a.js
+```
+**CommonJS 模块循环依赖**
+```
+// a.js
+console.log('a starting');
+exports.done = false;
+const b = require('./b');
+console.log('in a, b.done =', b.done);
+exports.done = true;
+console.log('a done');
+
+// b.js
+console.log('b starting');
+exports.done = false;
+const a = require('./a');
+console.log('in b, a.done =', a.done);
+exports.done = true;
+console.log('b done');
+
+// node a.js
+// 执行结果：
+// a starting
+// b starting
+// in b, a.done = false
+// b done
+// in a, b.done = true
+// a done
+```
+
+**ES6 模块循环依赖**
+```
+// a.js
+console.log('a starting')
+import {foo} from './b';
+console.log('in b, foo:', foo);
+export const bar = 2;
+console.log('a done');
+
+// b.js
+console.log('b starting');
+import {bar} from './a';
+export const foo = 'foo';
+console.log('in a, bar:', bar);
+setTimeout(() => {
+  console.log('in a, setTimeout bar:', bar);
+})
+console.log('b done');
+
+// babel-node a.js
+// 执行结果：
+// b starting
+// in a, bar: undefined
+// b done
+// a starting
+// in b, foo: foo
+// a done
+// in a, setTimeout bar: 2
+```
+# 4.异步机制
+！[](https://uploadfiles.nowcoder.com/files/20190729/595399536_1564330373356_9374643-598ff6c029970ff9.png)
+1.所有同步任务都在主线程上执行，形成一个执行栈(execution context stack)
+2.主线程之外，还存在一个任务队列（task queue），只要异步任务有了运行结果，就在“任务队列”之中放置一个事件。
+3.一旦“执行栈”中的所有同步任务执行完毕，系统就会读取“任务队列”，看看里面有哪些事件。那些对应的异步任务，就结束等待状态，进入执行栈开始被执行。
 
 
